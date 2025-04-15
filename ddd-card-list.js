@@ -5,7 +5,7 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
-
+import "./ddd-card.js";
 /**
  * `ddd-card-list`
  * 
@@ -13,19 +13,17 @@ import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
  * @element ddd-card-list
  */
 export class DddCardList extends DDDSuper(I18NMixin(LitElement)) {
-
+  
   static get tag() {
     return "ddd-card-list";
   }
 
   constructor() {
     super();
-    this.title = "";
-    this.t = this.t || {};
-    this.t = {
-      ...this.t,
-      title: "Title",
-    };
+    this.accent = "";
+    this.primary = "";
+    
+
     this.registerLocalization({
       context: this,
       localesPath:
@@ -39,7 +37,8 @@ export class DddCardList extends DDDSuper(I18NMixin(LitElement)) {
   static get properties() {
     return {
       ...super.properties,
-      title: { type: String },
+      accent: { type: String, reflect: true, attribute: "ddd-accent" },
+      primary: { type: String, reflect: true, attribute: "data-primary" },
     };
   }
 
@@ -49,27 +48,77 @@ export class DddCardList extends DDDSuper(I18NMixin(LitElement)) {
     css`
       :host {
         display: block;
-        color: var(--ddd-theme-primary);
-        background-color: var(--ddd-theme-accent);
+        color: var(ddd-theme-default-creekMaxLight);
+        background-color: var(ddd-theme-default-creekMaxLight);
         font-family: var(--ddd-font-navigation);
+        border: var(--ddd-border-sm);
       }
-      .wrapper {
-        margin: var(--ddd-spacing-2);
-        padding: var(--ddd-spacing-4);
+      
+      .container {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 420px));
+        justify-content: center;
+        gap: var(--ddd-spacing-8);
+        width: 100%;
+        padding: var(--ddd-spacing-8);
+        box-sizing: border-box;
       }
-      h3 span {
-        font-size: var(--ddd-card-list-label-font-size, var(--ddd-font-size-s));
+
+      @media (max-width: 1024px) {
+        .container {
+          grid-template-columns: repeat(2, minmax(0,420px));
+        }
       }
+
+      
+      @media (max-width: 768px) {
+        .container {
+          grid-template-columns: 1fr;
+          gap: var(--ddd-spacing-4);
+          padding: var(--ddd-spacing-3);
+        }
+
+        ::slotted(ddd-card) {
+          width: 100%;
+          max-width: 100%;
+          } 
+      }
+
     `];
   }
 
+  updated(changedProperties){
+    super.updated(changedProperties);
+    this.updatedCardProperties();
+    this.updateAccentColor();
+  }
+
+
+  updatedCardProperties() {
+    const cards = this.querySelectorAll("ddd-card");
+    cards.forEach((card) => {
+      if(this.primary) {
+        card.primary = this.primary;
+      }
+    });
+  }
+
+  updateAccentColor() {
+    if (this.accent) {
+      this.style.setProperty(
+        'background-color',
+        `var(--ddd-accent-${this.accent})`
+      );
+    }
+  }
+
+  
   // Lit render the HTML
   render() {
     return html`
-<div class="wrapper">
-  <h3><span>${this.t.title}:</span> ${this.title}</h3>
-  <slot></slot>
-</div>`;
+      <div class="container">
+        <slot></slot>
+      </div>`;
   }
 
   /**
